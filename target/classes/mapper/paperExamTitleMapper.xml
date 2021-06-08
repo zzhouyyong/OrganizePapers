@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.papers.mapper.paperExamTitleMapper">
+    <resultMap id="paperExamTitleMap" type="com.papers.domain.paperExamTitle">
+        <id property="id" column="id"></id>
+        <result property="examId" column="exam_id"></result>
+        <result property="orderId" column="order_id"></result>
+        <result property="titleName" column="title_name"></result>
+        <result property="titleType" column="title_type"></result>
+        <result property="titleLevel" column="title_level"></result>
+        <result property="titleDifficulty" column="title_difficulty"></result>
+        <result property="titlePoint" column="title_point"></result>
+        <result property="createBy" column="create_by"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateBy" column="update_by"></result>
+        <result property="updateTime" column="update_time"></result>
+        <result property="deleteFlag" column="delete_flag"></result>
+    </resultMap>
+
+    <select id="findAllExamTitle" parameterType="int" resultMap="paperExamTitleMap">
+        select
+            pet.id,pet.title_name,pet.title_type,pet.title_level,pet.title_difficulty,pet.title_point,
+            pet.create_by,pet.create_time,pet.update_by,pet.update_time,pet.delete_flag
+        from
+            papers_exam pe
+        left join
+            papers_exam_title pet
+        on
+            pe.id = pet.exam_id
+        <where>
+            pet.delete_flag = 0
+            and
+            pe.id = #{id}
+        </where>
+    </select>
+
+    <select id="findExamTitleByParams" parameterType="com.alibaba.fastjson.JSONObject" resultMap="paperExamTitleMap">
+        select
+            id,title_name,title_type,title_level,title_difficulty,title_point,
+            create_by,create_time,update_by,update_time,delete_flag
+        from
+            papers_exam_title
+        <where>
+            <trim suffixOverrides="and">
+                <if test="null != id and id != ''">
+                    id = #{id} and
+                </if>
+                <if test="null != examId and examId != ''">
+                    exam_id = #{examId} and
+                </if>
+                <if test="null != titleType and titleType != ''">
+                    title_type = #{titleType} and
+                </if>
+                <if test="null != titleLevel and titleLevel != ''">
+                    title_level = #{titleLevel} and
+                </if>
+                <if test="null != titleName and titleName != ''">
+                    title_name like concat('%', #{titleName}, '%') and
+                </if>
+            </trim>
+            and
+            delete_flag = 0
+        </where>
+    </select>
+
+    <select id="findExamTitleByTitleType" parameterType="string" resultMap="paperExamTitleMap">
+        select
+            id,exam_id,title_name,title_type,title_level,title_difficulty,title_point,
+            create_by,create_time,update_by,update_time,delete_flag
+        from
+            papers_exam_title
+        <where>
+            delete_flag = 0
+            and
+            title_type in
+            <foreach collection="types.split(',')" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <delete id="deleteExamTitle" parameterType="string">
+        <!-- 逻辑删除 -->
+        update papers_exam_title
+        set
+        delete_flag = 1
+        <where>
+            id in
+            <foreach collection="ids.split(',')" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+
+        <!-- 物理删除 -->
+<!--        delete from papers_exam_title-->
+<!--        <where>-->
+<!--            id in-->
+<!--            <foreach collection="ids.split(',')" item="item" index="index" open="(" close=")" separator=",">-->
+<!--                #{item}-->
+<!--            </foreach>-->
+<!--        </where>-->
+    </delete>
+
+    <update id="updateExamTitleById" parameterType="com.papers.domain.paperExamTitle">
+        update papers_exam_title
+        set
+        <trim suffixOverrides=",">
+            <if test="null != titleName and titleName != ''">
+                title_name = #{titleName},
+            </if>
+            <if test="null != titleType">
+                title_type = #{titleType},
+            </if>
+            <if test="null != titleLevel">
+                title_level = #{titleLevel},
+            </if>
+            <if test="null != titlePoint">
+                title_point = #{titlePoint},
+            </if>
+            <if test="null != updateBy and updateBy != ''">
+                update_by = #{updateBy},
+            </if>
+            <if test="null != updateTime">
+                update_time = #{updateTime}
+            </if>
+        </trim>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <insert id="addExamTitle" parameterType="com.papers.domain.paperExamTitle">
+        insert into papers_exam_title
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="null != examId">
+                exam_id,
+            </if>
+            <if test="null != titleName and titleName != ''">
+                title_name,
+            </if>
+            <if test="null != titleType">
+                title_type,
+            </if>
+            <if test="null != titleLevel">
+                title_level,
+            </if>
+            <if test="null != titleDifficulty">
+                title_difficulty,
+            </if>
+            <if test="null != titlePoint">
+                title_point,
+            </if>
+            <if test="null != createBy and createBy != ''">
+                create_by,
+            </if>
+            <if test="null != createTime">
+                create_time,
+            </if>
+            <if test="null != updateBy and updateBy != ''">
+                update_by,
+            </if>
+            <if test="null != updateTime">
+                update_time,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="null != examId">
+                #{examId},
+            </if>
+            <if test="null != titleName and titleName != ''">
+                 #{titleName},
+            </if>
+            <if test="null != titleType">
+                 #{titleType},
+            </if>
+            <if test="null != titleLevel">
+                #{titleLevel},
+            </if>
+            <if test="null != titleDifficulty">
+                #{titleDifficulty},
+            </if>
+            <if test="null != titlePoint">
+                #{titlePoint},
+            </if>
+            <if test="null != createBy and createBy != ''">
+                #{createBy},
+            </if>
+            <if test="null != createTime">
+                #{createTime},
+            </if>
+            <if test="null != updateBy and updateBy != ''">
+                #{updateBy},
+            </if>
+            <if test="null != updateTime">
+                #{updateTime},
+            </if>
+        </trim>
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            select LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <select id="calTestPoint" parameterType="string" resultType="int">
+        select sum(title_point)
+        from
+        papers_exam_title
+        <where>
+            id in
+            <foreach collection="ids.split(',')" open="(" close=")" separator="," item="item">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+</mapper>

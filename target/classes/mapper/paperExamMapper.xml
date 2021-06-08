@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.papers.mapper.paperExamMapper">
+
+    <resultMap id="ExamDetail" type="com.papers.domain.paperExam">
+        <id column="id" property="id"></id>
+        <result column="exam_name" property="examName"></result>
+        <result column="exam_type" property="examType"></result>
+        <result column="exam_remark" property="examRemark"></result>
+        <result column="exam_number" property="examNumber"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="delete_flag" property="deleteFlag"></result>
+    </resultMap>
+
+    <!-- 添加题库 -->
+    <insert id="addExam" parameterType="com.papers.domain.paperExam">
+        insert into papers_exam
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="null != examName and examName != '' ">exam_name,</if>
+            <if test="null != examType">exam_type,</if>
+            <if test="null != examRemark and examRemark != '' ">exam_remark,</if>
+            <if test="null != examNumber">exam_number,</if>
+            <if test="null != createTime">create_time,</if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="null != examName and examName != '' ">#{examName},</if>
+            <if test="null != examType">#{examType},</if>
+            <if test="null != examRemark and examRemark != '' ">#{examRemark},</if>
+            <if test="null != examNumber">#{examNumber},</if>
+            <if test="null != createTime">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <!-- 查询全部题库 -->
+    <select id="findAllExam" resultMap="ExamDetail">
+        select
+            id,exam_name,exam_type,exam_remark,exam_number,create_time
+        from
+            papers_exam
+        <where>
+            delete_flag = 0
+        </where>
+    </select>
+
+    <!-- 批量删除 -->
+    <delete id="deleteExam" parameterType="string">
+        update papers_exam
+        set
+        delete_flag = 1
+        <where>
+        id in
+            <foreach collection="ids.split(',')" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </delete>
+
+    <!-- 模糊查询 -->
+    <select id="findExamByParams" parameterType="com.alibaba.fastjson.JSONObject" resultMap="ExamDetail">
+        select
+        id,exam_name,exam_type,exam_remark,exam_number,create_time,delete_flag
+        from
+        papers_exam
+        <where>
+            <if test="null != id">
+                id = #{id}
+            </if>
+            <if test="null != examName and examName != ''">
+                exam_name like concat('%', #{examName}, '%')
+            </if>
+            and
+            delete_flag = 0
+        </where>
+    </select>
+
+    <update id="updateExamById" parameterType="com.papers.domain.paperExam">
+        update papers_exam
+        set
+        <trim suffixOverrides=",">
+            <if test="null != examName and examName != ''">
+                exam_name = #{examName},
+            </if>
+            <if test="null != examType">
+                exam_type = #{examType},
+            </if>
+            <if test="null != examRemark and examRemark != ''">
+                exam_remark = #{examRemark},
+            </if>
+        </trim>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <!-- 查询题库中所有的题目数量 -->
+    <select id="findExamNumber" parameterType="int" resultType="int">
+        select count(*) from
+        papers_exam pe
+        left join
+        papers_exam_title pet
+        on
+        pe.id = pet.exam_id
+        <where>
+            pe.id = #{id}
+            and
+            pet.delete_flag = 0
+        </where>
+    </select>
+</mapper>
